@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Liquid Glass</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #0a0a0f;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Animated gradient background */
+  .bg-orbs {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.5;
+    animation: floatOrb 20s ease-in-out infinite;
+  }
+
+  .orb:nth-child(1) {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, #6366f1 0%, transparent 70%);
+    top: -15%; left: -10%;
+    animation-delay: 0s;
+  }
+
+  .orb:nth-child(2) {
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, #ec4899 0%, transparent 70%);
+    bottom: -10%; right: -8%;
+    animation-delay: -7s;
+  }
+
+  .orb:nth-child(3) {
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, #06b6d4 0%, transparent 70%);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: -14s;
+  }
+
+  @keyframes floatOrb {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(80px, -60px) scale(1.15); }
+    50% { transform: translate(-40px, 40px) scale(0.9); }
+    75% { transform: translate(-60px, -30px) scale(1.1); }
+  }
+
+  /* Main container */
+  .phone-frame {
+    position: relative;
+    z-index: 1;
+    width: 390px;
+    min-height: 780px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 44px;
+    padding: 20px;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow:
+      0 0 80px rgba(99,102,241,0.15),
+      0 0 40px rgba(236,72,153,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  /* Dynamic Island */
+  .dynamic-island {
+    width: 120px;
+    height: 34px;
+    background: #000;
+    border-radius: 20px;
+    margin: 0 auto 28px;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .dynamic-island.expanded {
+    width: 240px;
+    height: 48px;
+    border-radius: 24px;
+  }
+
+  .dynamic-island::after {
+    content: '';
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 8px; height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .dynamic-island.expanded::after { opacity: 1; }
+
+  .di-wave {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg,
+      transparent 20%, rgba(99,102,241,0.3) 40%,
+      rgba(236,72,153,0.3) 60%, transparent 80%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .dynamic-island.expanded .di-wave { opacity: 1; }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Liquid drop */
+  .liquid-drop {
+    position: absolute;
+    width: 6px; height: 10px;
+    background: linear-gradient(180deg, #6366f1, #ec4899);
+    border-radius: 3px 3px 5px 5px;
+    filter: blur(1px);
+    animation: drip 4s ease-in-out infinite;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .liquid-drop:nth-child(1) { left: 30px; top: -40px; animation-delay: 0s; }
+  .liquid-drop:nth-child(2) { left: 120px; top: -40px; animation-delay: 1.5s; }
+  .liquid-drop:nth-child(3) { left: 200px; top: -40px; animation-delay: 3s; }
+
+  @keyframes drip {
+    0% { opacity: 0; transform: translateY(-10px) scale(1); }
+    20% { opacity: 1; transform: translateY(60px) scale(1.5); }
+    40% { opacity: 0.8; transform: translateY(160px) scale(1); }
+    60% { opacity: 0; transform: translateY(300px) scale(0.5); }
+    100% { opacity: 0; transform: translateY(400px) scale(0); }
+  }
+
+  /* Time */
+  .time-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 8px;
+    margin-bottom: 32px;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .time {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .status-icons {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .status-icons svg { width: 16px; height: 16px; opacity: 0.85; }
+
+  /* Glass card */
+  .glass-card {
+    background: rgba(255,255,255,0.04);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border-radius: 28px;
+    padding: 24px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255,255,255,0.08);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: cardIn 0.8s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  }
+
+  .glass-card:nth-child(1) { animation-delay: 0.1s; }
+  .glass-card:nth-child(2) { animation-delay: 0.2s; }
+  .glass-card:nth-child(3) { animation-delay: 0.3s; }
+  .glass-card:nth-child(4) { animation-delay: 0.4s; }
+
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(24px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .glass-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255,255,255,0.15);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+  }
+
+  .glass-card:active {
+    transform: scale(0.98);
+    transition: transform 0.15s ease;
+  }
+
+  /* Card shimmer */
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255,255,255,0.03) 50%,
+      transparent 100%
+    );
+    transition: left 0.7s ease;
+  }
+
+  .glass-card:hover::before { left: 100%; }
+
+  /* Liquid edge highlight */
+  .glass-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      rgba(255,255,255,0.06) 0%,
+      transparent 40%,
+      transparent 60%,
+      rgba(255,255,255,0.02) 100%
+    );
+    pointer-events: none;
+  }
+
+  /* Weather card */
+  .weather-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .weather-info h3 {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+  }
+
+  .weather-temp {
+    font-size: 52px;
+    font-weight: 200;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -2px;
+  }
+
+  .weather-desc {
+    font-size: 14px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 4px;
+  }
+
+  .weather-icon {
+    width: 80px; height: 80px;
+    background: radial-gradient(circle at 40% 35%, #fbbf24 0%, #f59e0b 40%, transparent 70%);
+    border-radius: 50%;
+    animation: sunPulse 3s ease-in-out infinite;
+    box-shadow: 0 0 40px rgba(251,191,36,0.3);
+  }
+
+  @keyframes sunPulse {
+    0%, 100% { box-shadow: 0 0 40px rgba(251,191,36,0.3); }
+    50% { box-shadow: 0 0 70px rgba(251,191,36,0.5); }
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .stat-item {
+    flex: 1;
+    text-align: center;
+    padding: 16px 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.3s ease;
+  }
+
+  .stat-item:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.1);
+  }
+
+  .stat-value {
+    font-size: 24px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: rgba(255,255,255,0.35);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  /* Music player */
+  .music-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .album-art {
+    width: 52px; height: 52px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #ec4899, #6366f1, #06b6d4);
+    animation: rotateHue 8s linear infinite;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .album-art::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    background: rgba(0,0,0,0.4);
+    border-radius: 50%;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  @keyframes rotateHue {
+    0% { filter: hue-rotate(0deg); }
+    100% { filter: hue-rotate(360deg); }
+  }
+
+  .music-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .music-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .music-artist {
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 2px;
+  }
+
+  /* Play button with ripple */
+  .play-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+
+  .play-btn:hover {
+    background: rgba(255,255,255,0.18);
+    transform: scale(1.05);
+  }
+
+  .play-btn svg { width: 16px; height: 16px; fill: #fff; opacity: 0.9; }
+
+  /* Ripple effect */
+  .ripple-container {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.15);
+    animation: ripple 2s ease-out infinite;
+    pointer-events: none;
+  }
+
+  .ripple-container:nth-child(2) { animation-delay: 0.5s; }
+  .ripple-container:nth-child(3) { animation-delay: 1s; }
+
+  @keyframes ripple {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1.8); opacity: 0; }
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 2px;
+    margin-top: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 40%;
+    background: linear-gradient(90deg, #6366f1, #ec4899, #06b6d4);
+    background-size: 200% 100%;
+    border-radius: inherit;
+    animation: progressShimmer 4s ease-in-out infinite;
+    position: relative;
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 50%;
+    transform: translate(50%, -50%);
+    width: 10px; height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255,255,255,0.5);
+  }
+
+  @keyframes progressShimmer {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Notifications */
+  .notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 6px 0;
+  }
+
+  .notif-icon {
+    width: 36px; height: 36px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+
+  .notif-icon.messages { background: rgba(99,102,241,0.2); }
+  .notif-icon.mail { background: rgba(6,182,212,0.2); }
+  .notif-icon.calendar { background: rgba(236,72,153,0.2); }
+
+  .notif-content { flex: 1; min-width: 0; }
+  .notif-title { font-size: 14px; font-weight: 500; color: #fff; }
+  .notif-body { font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+  .notif-time { font-size: 11px; color: rgba(255,255,255,0.25); margin-top: 4px; }
+
+  .notif-dot {
+    width: 8px; height: 8px;
+    background: #6366f1;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 14px;
+    box-shadow: 0 0 8px rgba(99,102,241,0.6);
+    animation: dotPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes dotPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  /* Tab bar */
+  .tab-bar {
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0 0;
+    margin-top: 4px;
+  }
+
+  .tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s ease;
+  }
+
+  .tab-icon {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.08);
+    transition: all 0.3s ease;
+  }
+
+  .tab-item.active .tab-icon {
+    background: rgba(99,102,241,0.3);
+    box-shadow: 0 0 12px rgba(99,102,241,0.3);
+  }
+
+  .tab-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.3);
+    transition: color 0.3s;
+  }
+
+  .tab-item.active .tab-label {
+    color: rgba(255,255,255,0.8);
+  }
+
+  /* Liquid blur shape */
+  .liquid-blob {
+    position: absolute;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%);
+    border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+    filter: blur(40px);
+    animation: blobMorph 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  @keyframes blobMorph {
+    0%, 100% { border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%; }
+    25% { border-radius: 40% 60% 30% 70% / 60% 40% 60% 40%; }
+    50% { border-radius: 30% 70% 50% 60% / 40% 50% 60% 50%; }
+    75% { border-radius: 50% 50% 40% 60% / 70% 30% 50% 50%; }
+  }
+
+  /* Glow button */
+  .glow-btn {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(236,72,153,0.2));
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s ease;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .glow-btn:hover {
+    background: linear-gradient(135deg, rgba(99,102,241,0.35), rgba(236,72,153,0.35));
+    box-shadow: 0 0 30px rgba(99,102,241,0.2);
+    transform: translateY(-1px);
+  }
+
+  .glow-btn:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+
+  .glow-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: conic-gradient(
+      transparent, rgba(255,255,255,0.05), transparent 30%
+    );
+    animation: btnSpin 4s linear infinite;
+  }
+
+  @keyframes btnSpin {
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Loading dots */
+  .loading-dots {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    padding: 20px 0;
+  }
+
+  .loading-dot {
+    width: 6px; height: 6px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 50%;
+    animation: dotBounce 1.4s ease-in-out infinite;
+  }
+
+  .loading-dot:nth-child(2) { animation-delay: 0.16s; }
+  .loading-dot:nth-child(3) { animation-delay: 0.32s; }
+
+  @keyframes dotBounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.3; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Tilt effect */
+  .tilt-layer {
+    transition: transform 0.1s ease-out;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-orbs">
+  <div class="orb"></div>
+  <div class="orb"></div>
+  <div class="orb"></div>
+</div>
+
+<div class="phone-frame tilt-layer" id="phone">
+  <!-- Dynamic Island -->
+  <div class="dynamic-island" id="dynamicIsland">
+    <div class="di-wave"></div>
+  </div>
+
+  <!-- Liquid drops -->
+  <div class="liquid-drop"></div>
+  <div class="liquid-drop"></div>
+  <div class="liquid-drop"></div>
+
+  <!-- Time & Status -->
+  <div class="time-row">
+    <span class="time" id="timeDisplay">9:41</span>
+    <div class="status-icons">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M1 17l4-4 4 4 6-8 4 4"/></svg>
+      <svg viewBox="0 0 24 24" fill="white"><rect x="1" y="6" width="3" height="12" rx="0.5"/><rect x="7" y="4" width="3" height="14" rx="0.5"/><rect x="13" y="2" width="3" height="16" rx="0.5"/><rect x="19" y="1" width="3" height="18" rx="0.5"/></svg>
+      <svg viewBox="0 0 24 24" fill="white"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    </div>
+  </div>
+
+  <!-- Weather Card -->
+  <div class="glass-card weather-card">
+    <div>
+      <h3>San Francisco</h3>
+      <div class="weather-temp">72°</div>
+      <div class="weather-desc">晴间多云</div>
+    </div>
+    <div class="weather-icon"></div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="stats-row">
+    <div class="stat-item">
+      <div class="stat-value">2,847</div>
+      <div class="stat-label">步数</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">6h 23m</div>
+      <div class="stat-label">屏幕时间</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-value">87</div>
+      <div class="stat-label">心率</div>
+    </div>
+  </div>
+
+  <!-- Music Player -->
+  <div class="glass-card">
+    <div class="music-card">
+      <div class="album-art"></div>
+      <div class="music-info">
+        <div class="music-title">Blinding Lights</div>
+        <div class="music-artist">The Weeknd</div>
+      </div>
+      <div class="play-btn" id="playBtn">
+        <div class="ripple-container"></div>
+        <div class="ripple-container"></div>
+        <div class="ripple-container"></div>
+        <svg id="playIcon" viewBox="0 0 24 24"><polygon points="8,5 19,12 8,19"/></svg>
+      </div>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill"></div>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="glass-card">
+    <div class="notif-item">
+      <div class="notif-icon messages">💬</div>
+      <div class="notif-content">
+        <div class="notif-title">Sarah Chen</div>
+        <div class="notif-body">今晚一起吃饭？七点老地方见</div>
+        <div class="notif-time">2 分钟前</div>
+      </div>
+      <div class="notif-dot"></div>
+    </div>
+    <div class="notif-item" style="opacity: 0.6;">
+      <div class="notif-icon mail">📧</div>
+      <div class="notif-content">
+        <div class="notif-title">GitHub</div>
+        <div class="notif-body">新 PR 审核请求 · project2</div>
+        <div class="notif-time">1 小时前</div>
+      </div>
+    </div>
+    <div class="notif-item" style="opacity: 0.4;">
+      <div class="notif-icon calendar">📅</div>
+      <div class="notif-content">
+        <div class="notif-title">明天 9:00</div>
+        <div class="notif-body">产品评审会议 · Zoom</div>
+        <div class="notif-time">今天</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Button -->
+  <button class="glow-btn" id="glowBtn">
+    查看全部通知
+  </button>
+
+  <!-- Loading -->
+  <div class="loading-dots">
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+    <div class="loading-dot"></div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active">
+      <div class="tab-icon"></div>
+      <span class="tab-label">Home</span>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"></div>
+      <span class="tab-label">Discover</span>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"></div>
+      <span class="tab-label">Library</span>
+    </div>
+    <div class="tab-item">
+      <div class="tab-icon"></div>
+      <span class="tab-label">Profile</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Update time
+  function updateTime() {
+    const now = new Date();
+    document.getElementById('timeDisplay').textContent =
+      now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false });
+  }
+  updateTime();
+  setInterval(updateTime, 10000);
+
+  // Dynamic Island interaction
+  const island = document.getElementById('dynamicIsland');
+  island.addEventListener('click', () => {
+    island.classList.toggle('expanded');
+    setTimeout(() => island.classList.contains('expanded') && island.classList.remove('expanded'), 3000);
+  });
+
+  // Play button toggle
+  const playBtn = document.getElementById('playBtn');
+  const playIcon = document.getElementById('playIcon');
+  let playing = false;
+
+  playBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    playing = !playing;
+    playIcon.innerHTML = playing
+      ? '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>'
+      : '<polygon points="8,5 19,12 8,19"/>';
+    playBtn.style.transform = playing ? 'scale(1.1)' : 'scale(1)';
+    setTimeout(() => { playBtn.style.transform = ''; }, 200);
+  });
+
+  // Glow button click effect
+  const glowBtn = document.getElementById('glowBtn');
+  glowBtn.addEventListener('click', () => {
+    glowBtn.style.transform = 'scale(0.95)';
+    setTimeout(() => { glowBtn.style.transform = ''; }, 150);
+
+    // Burst effect
+    const burst = document.createElement('div');
+    burst.style.cssText = `
+      position: absolute; inset: 0; border-radius: inherit;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.2) 0%, transparent 70%);
+      animation: burstOut 0.6s ease-out forwards; pointer-events: none;
+    `;
+    glowBtn.appendChild(burst);
+    setTimeout(() => burst.remove(), 600);
+  });
+
+  // Tilt effect
+  const phone = document.getElementById('phone');
+  document.addEventListener('mousemove', (e) => {
+    const rect = phone.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    const rotateX = ((y - centerY) / centerY) * -8;
+    const rotateY = ((x - centerX) / centerX) * 8;
+    phone.style.transform =
+      `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+  });
+
+  document.addEventListener('mouseleave', () => {
+    phone.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+    phone.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+    setTimeout(() => { phone.style.transition = 'transform 0.1s ease-out'; }, 600);
+  });
+
+  // Add burst keyframe
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes burstOut {
+      0% { transform: scale(0.8); opacity: 1; }
+      100% { transform: scale(2); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Auto-expand island on load
+  setTimeout(() => {
+    island.classList.add('expanded');
+    setTimeout(() => island.classList.remove('expanded'), 2500);
+  }, 1500);
+</script>
+
+</body>
+</html>
