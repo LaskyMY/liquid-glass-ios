@@ -637,9 +637,9 @@
     40% { transform: scale(1); opacity: 1; }
   }
 
-  /* Tilt effect */
+  /* Gyro tilt effect */
   .tilt-layer {
-    transition: transform 0.1s ease-out;
+    transition: transform 0.15s ease-out;
   }
 </style>
 </head>
@@ -829,25 +829,54 @@
     setTimeout(() => burst.remove(), 600);
   });
 
-  // Tilt effect
+  // Gyro-based tilt
   const phone = document.getElementById('phone');
-  document.addEventListener('mousemove', (e) => {
-    const rect = phone.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    const rotateX = ((y - centerY) / centerY) * -8;
-    const rotateY = ((x - centerX) / centerX) * 8;
-    phone.style.transform =
-      `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-  });
+  let currentRX = 0, currentRY = 0;
+  let targetRX = 0, targetRY = 0;
 
-  document.addEventListener('mouseleave', () => {
-    phone.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
-    phone.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
-    setTimeout(() => { phone.style.transition = 'transform 0.1s ease-out'; }, 600);
-  });
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function animateTilt() {
+    currentRX = lerp(currentRX, targetRX, 0.08);
+    currentRY = lerp(currentRY, targetRY, 0.08);
+    phone.style.transform =
+      `perspective(1000px) rotateX(${currentRX.toFixed(2)}deg) rotateY(${currentRY.toFixed(2)}deg)`;
+    requestAnimationFrame(animateTilt);
+  }
+
+  function handleOrientation(e) {
+    // beta: front-to-back (-180..180), gamma: left-to-right (-90..90)
+    const beta = e.beta || 0;
+    const gamma = e.gamma || 0;
+
+    // Map: device flat on table (beta=0) → no tilt
+    //      device tilted toward/away → rotateX
+    //      device tilted left/right → rotateY
+    // Clamp and scale to reasonable range
+    targetRX = Math.max(-15, Math.min(15, (beta - 45) * 0.4));
+    targetRY = Math.max(-15, Math.min(15, gamma * 0.5));
+  }
+
+  // Request permission for iOS
+  if (typeof DeviceOrientationEvent !== 'undefined') {
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      // iOS 13+ requires permission
+      document.addEventListener('click', function iosPermit() {
+        DeviceOrientationEvent.requestPermission()
+          .then(state => {
+            if (state === 'granted') {
+              window.addEventListener('deviceorientation', handleOrientation);
+            }
+          })
+          .catch(() => {});
+      }, { once: true });
+    } else {
+      window.addEventListener('deviceorientation', handleOrientation);
+    }
+  }
+
+  // Start the animation loop
+  animateTilt();
 
   // Add burst keyframe
   const style = document.createElement('style');
